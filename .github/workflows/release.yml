@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  release-pypi:
+    name: release-pypi
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+          architecture: "x64"
+      - name: Get Changelog
+        id: get-changelog
+        run: |
+          echo "::set-output name=CHANGELOG_CONTENT::$(awk '/-{3,}/{flag=1;next}/Release/{if (flag==1)exit}flag' CHANGELOG.md)"
+      - name: Install PDM
+        run: |
+          pip install -U pip
+          pip install pdm
+      - name: Build artifacts
+        run: |
+          pdm build -v
+      - name: Upload to Pypi
+        run: |
+          pip install twine
+          twine upload --username __token__ --password ${{ secrets.PYPI_TOKEN }} dist/*
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: v${{ github.ref }}
+          body: ${{ steps.get-changelog.outputs.CHANGELOG_CONTENT }}
+          draft: false
+          prerelease: false

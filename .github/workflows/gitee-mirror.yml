@@ -1,0 +1,42 @@
+name: Mirror GitHub Auto Queried Repos to Gitee
+
+on:
+  push:
+    branches: main
+
+jobs:
+  run:
+    name: Run
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v1
+
+    - name: Get Time
+      id: get-time
+      run: |
+        echo "::set-output name=date::$(/bin/date -u "+%Y%m%d%H%M%S")"
+      shell: bash
+
+    - name: Cache src repos
+      uses: actions/cache@v1
+      id: cache
+      with:
+        path: ${{ github.workspace }}/hub-mirror-cache
+        key: ${{ runner.os }}-hub-repos-cache-${{ steps.get-time.outputs.date }}
+        restore-keys: ${{ runner.os }}-hub-repos-cache
+
+    - name: Mirror Github to Gitee with white list and cache
+      uses: Yikun/hub-mirror-action@master
+      with:
+        src: github/Yikun
+        dst: gitee/yikunkero
+        dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
+        dst_token:  ${{ secrets.GITEE_TOKEN }}
+        cache_path: /github/workspace/hub-mirror-cache
+        white_list: 'django-vditor'
+        force_update: true
+
+    - name: Print cache path
+      run: |
+        ls -la ${{ github.workspace }}/hub-mirror-cache

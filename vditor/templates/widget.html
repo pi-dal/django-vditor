@@ -1,0 +1,42 @@
+{% load static %}
+<!--jsdelivr-cdn is used by default, and self-built cdn and local static options will be added in the future-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor/dist/index.css" />
+<script src="https://cdn.jsdelivr.net/npm/vditor/dist/index.min.js"></script>
+<br><br>
+<div id="VditorText">
+</div>
+<!--<textarea> is blocked in Vditor, so use the external <textarea> value-->
+<textarea {{ final_attrs|safe }} style="display: none">{{ value }}</textarea>
+
+<script type="text/javascript">
+    const vditor = new Vditor("VditorText", {
+        width: '{{ config.width|safe }}',
+        height: '{{ config.height }}',
+        lang: '{{ config.lang|safe }}',
+        typewriterMode: '{{ config.typewriterMode|safe }}',
+        mode: '{{ config.mode|safe }}',
+        debugger: '{{ config.debugger|safe }}',
+        value: '{{ config.value|safe }}',
+        theme: '{{ config.theme|safe }}',
+        icon: '{{ config.icon|safe }}',
+        outline: '{{config.outline }}',
+        preview: {
+            theme: {
+                current: '{{ config.preview_theme|safe }}'
+            },
+        },
+        upload: {
+            url: '/vditor/uploads/',
+            linkToImgUrl: '/vditor/uploads/',
+            accept: '.jpg,.png,.gif,.jpeg',
+            filename(name) {
+                return name.replace(/\?|\\|\/|:|\||<|>|\*|\[|\]|\s+/g, '-')
+            },
+        },
+        input(md) {
+            document.getElementById('id_content').value = md
+        },
+    })
+    //clear cache
+    vditor.clearCache();
+</script>

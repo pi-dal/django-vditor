@@ -1,0 +1,13 @@
+[run]
+branch = True
+source = .
+omit =
+   manage.py
+   __pypackages__/*
+   vditor_app/*
+   vditor_demo/*
+   */migrations/*
+
+[report]
+show_missing = True
+skip_covered = True
