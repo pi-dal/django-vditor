@@ -21,7 +21,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('vditor/', include('vditor.urls'))
+    path('vditor/', include('vditor.urls')),
+    path('', include('vditor_app.urls'))
 ]
 
 if settings.DEBUG:

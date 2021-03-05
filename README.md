@@ -5,7 +5,7 @@
 <p align="center">
 <strong>django-vditor</strong> is Markdown Editor plugin application for <a href="https://github.com/django/django">django</a> base on <a href="https://github.com/Vanessa219/vditor">vditor</a>.
 <br>
-<strong>Django-vditor</strong> was inspired by great <a href="https://github.com/pylixm/django-mdeditor">django-mdeditor</a>.
+<strong>django-vditor</strong> was inspired by great <a href="https://github.com/pylixm/django-mdeditor">django-mdeditor</a>.
 <br><br>
 <a title="python-version" target="_blank" href="https://github.com/pi-dal/django-vditor"><img alt="python-version" src="https://img.shields.io/badge/python-3.7+-purper.svg"></a>
 <a title="django-version" target="_blank" href="https://github.com/pi-dal/django-vditor"><img alt="django-version" src="https://img.shields.io/badge/django-2.2+-green.svg"></a>
@@ -20,6 +20,16 @@
 <a title="GitHub-Forks" target="_blank" href="https://github.com/pi-dal/django-vditor/network/members"><img src="https://img.shields.io/github/forks/pi-dal/django-vditor.svg?label=Forks&style=social"></a>  
 <a title="Author-GitHub-Followers" target="_blank" href="https://github.com/pi-dal"><img src="https://img.shields.io/github/followers/pi-dal.svg?label=Followers&style=social"></a>
 </p>
+
+## Contents
+* [Features](#features)
+* [Quick start](#quick-start)
+* [Usage](#usage)
+  * [Edit fields in the model using Markdown](#edit-fields-in-the-model-using-markdown)
+  * [Edit fields in the Form using markdown](#edit-fields-in-the-form-using-markdown)
+  * [Use the markdown widget in admin](#use-the-markdown-widget-in-admin)
+  * [Customize the toolbar](#customize-the-toolbar)
+* [Reference](#reference)
 
 ## Features
 
@@ -122,32 +132,33 @@ Using Markdown to edit the fields in the model, we simply replace the `TextField
 from django.db import models
 from vditor.fields import VditorTextField
 
-class ExampleModel (models.Model):
-    name = models.CharField (max_length = 10)
-    content = VditorTextField ()
+class ExampleModel(models.Model):
+    name = models.CharField(max_length = 10)
+    content = VditorTextField()
 ```
 
 Admin in the background, will automatically display markdown edit rich text.
 
 Used in front-end template, you can use like this:
 
-```python
+```html
 {% load static %}
 <! DOCTYPE html>
 <html lang = "en">
     <head>
-        <meta http-equiv = "Content-Type" content = "text / html; charset = utf-8" />
-
-    </ head>
+        <meta http-equiv = "Content-Type" content = "text/html; charset = utf-8" />
+    </head>
     <body>
         <form method = "post" action = "./">
             {% csrf_token%}
             {{form.media}}
-            {{form.as_p}}
-            <p> <input type = "submit" value = "post"> </ p>
-        </ form>
-    </ body>
-</ html>
+            <ul style="display: flex">
+                {{form.as_p}}
+            </ul>
+            <p> <input type = "submit" value = "post"> </p>
+        </form>
+    </body>
+</html>
 
 ```
 
@@ -158,15 +169,15 @@ Use markdown to edit fields in the Form, use `VditorTextFormField` instead of` f
 ```python
 from vditor.fields import VditorTextFormField
 
-class VDitorForm (forms.Form):
-    name = forms.CharField ()
-    content = VditorTextFormField ()
+class VditorForm(forms.Form):
+    name = forms.CharField()
+    content = VditorTextFormField()
 ```
 
 `ModelForm` can automatically convert the corresponding model field to the form field, which can be used normally:
 
 ```python
-class VDitorModleForm (forms.ModelForm):
+class VditorModleForm(forms.ModelForm):
 
     class Meta:
         model = ExampleModel
@@ -186,13 +197,13 @@ from. import models as demo_models
 from vditor.widgets import VditorWidget
 
 
-class ExampleModelAdmin (admin.ModelAdmin):
+class ExampleModelAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': VditorWidget}
     }
 
 
-admin.site.register (demo_models.ExampleModel, ExampleModelAdmin)
+admin.site.register(demo_models.ExampleModel, ExampleModelAdmin)
 ```
 
 ### Customize the toolbar

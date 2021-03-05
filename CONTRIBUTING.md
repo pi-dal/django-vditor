@@ -9,7 +9,7 @@ First off, thanks for taking the time to contribute! Contributions include but a
 
 The following is a set of guidelines for contributing.
 
-## A recommended flow of contributing to an Open Source project.
+## A recommended flow of contributing to an open source project.
 
 This guideline is for new beginners of OSS. If you are an experienced OSS developer, you can skip this section.
 
@@ -55,9 +55,9 @@ This guideline is for new beginners of OSS. If you are an experienced OSS develo
 First, install package management tools `pdm`.
 
 ```bash
-If you are on MacOS and using homebrew, install it by:
+# If you are on MacOS and using homebrew, install it by:
 $ brew install pdm
-Otherwise, it is recommended to install pdm in an isolated environment with pipx:
+# Otherwise, it is recommended to install pdm in an isolated environment with pipx:
 $ pipx install pdm
 # Or you can install it under a user site:
 $ pip install --user pdm

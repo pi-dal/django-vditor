@@ -3,5 +3,5 @@ from .views import VditorImagesUploadView
 
 
 urlpatterns = [
-    path('uploads/', VditorImagesUploadView, name='uploads'),
+    path('uploads/', VditorImagesUploadView, name='uploads')
 ]
