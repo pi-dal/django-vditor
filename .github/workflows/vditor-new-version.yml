@@ -1,0 +1,33 @@
+name: Mirror GitHub Auto Queried Repos to Gitee
+
+on: [push, pull_request]
+
+name: Node.js CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: main
+
+      - name: Checkout vditor
+        uses: actions/checkout@v2
+        with:
+          repository: Vanessa219/vditor
+          path: vditor_source_code
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+
+      - run: cd vditor && npm install && npm run build && cd dists && mv * ../vditor/dist
+      - run: rm -rf vditor_source_code
+      - run: git add . && git commit -m 'Update to the latest vditor' && git push origin the_latest_vditor
