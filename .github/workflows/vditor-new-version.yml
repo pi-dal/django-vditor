@@ -2,10 +2,6 @@ name: Mirror GitHub Auto Queried Repos to Gitee
 
 on: [push, pull_request]
 
-name: Node.js CI
-
-on: [push]
-
 jobs:
   build:
 
