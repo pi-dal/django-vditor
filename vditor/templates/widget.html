@@ -1,7 +1,4 @@
 {% load static %}
-<!--jsdelivr-cdn is used by default, and self-built cdn and local static options will be added in the future-->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vditor/dist/index.css" />
-<script src="https://cdn.jsdelivr.net/npm/vditor/dist/index.min.js"></script>
 <br><br>
 <div id="VditorText">
 </div>
@@ -20,9 +17,11 @@
         theme: '{{ config.theme|safe }}',
         icon: '{{ config.icon|safe }}',
         outline: '{{config.outline }}',
+        cdn: '/static',
         preview: {
             theme: {
-                current: '{{ config.preview_theme|safe }}'
+                current: '{{ config.preview_theme|safe }}',
+                path: '/static/dist/css/content-theme'
             },
         },
         upload: {

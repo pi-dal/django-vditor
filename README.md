@@ -5,11 +5,13 @@
 <p align="center">
 <strong>django-vditor</strong> is Markdown Editor plugin application for <a href="https://github.com/django/django">django</a> base on <a href="https://github.com/Vanessa219/vditor">vditor</a>.
 <br>
-<strong>Django-vditor</strong> was inspired by great <a href="https://github.com/pylixm/django-mdeditor">django-mdeditor</a>.
+<strong>django-vditor</strong> was inspired by great <a href="https://github.com/pylixm/django-mdeditor">django-mdeditor</a>.
 <br><br>
 <a title="python-version" target="_blank" href="https://github.com/pi-dal/django-vditor"><img alt="python-version" src="https://img.shields.io/badge/python-3.7+-purper.svg"></a>
-<a title="django-version" target="_blank" href="https://github.com/pi-dal/django-vditor"><img alt="django-version" src="https://img.shields.io/badge/django-2.2+-green.svg"></a>
-<a title="last-commit" target="_blank" href="https://github.com/pi-dal/django-vditor/commits/main"><img src="https://img.shields.io/github/last-commit/pi-dal/django-vditor?color=blue"></a>  <br>
+<a title="django-version" target="_blank" href="https://pdm.fming.dev"><img alt="django-version" src="https://img.shields.io/badge/django-2.2+-green.svg"></a>
+<a title="last-commit" target="_blank" href="https://github.com/pi-dal/django-vditor/commits/main"><img src="https://img.shields.io/github/last-commit/pi-dal/django-vditor?color=blue"></a> 
+<a title="pdm-managed" target="_blank" href="https://github.com/pi-dal/django-vditor/commits/main"><img src="https://img.shields.io/badge/pdm-managed-blueviolet"></a>
+<br>
 <a title="Codacy-Badge" target="_blank" href="https://www.codacy.com/gh/pi-dal/django-vditor/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pi-dal/django-vditor&amp;utm_campaign=Badge_Grade"><img src="https://img.shields.io/codacy/grade/d23000f233344a9891189a816b58f9b1"></a>
 <a title="Codacy-Coveralls-Badge" target="_blank" href="https://www.codacy.com/gh/pi-dal/django-vditor/dashboard?utm_source=github.com&utm_medium=referral&utm_content=pi-dal/django-vditor&utm_campaign=Badge_Coverage"><img src="https://img.shields.io/codacy/coverage/d23000f233344a9891189a816b58f9b1"></a>
 <a title="pypi" target="_blank" href="https://pypi.org/manage/project/django-vditor/releases"><img src="https://img.shields.io/pypi/v/django-vditor"></a><br>
@@ -110,7 +112,7 @@ class ExampleModel(models.Model):
 - Run `python manage.py makemigrations` and `python manage.py migrate` to create your models.
 - Login Admin ,you can see a markdown editor text field like this:
 
-![django-vditor](https://cdn.jsdelivr.net/gh/pi-dal/figure-bed@master/django-vditor.gif)
+![django-vditor](https://github.com/pi-dal/figure-bed/blob/master/django-vditor.gif?raw=true)
 
 ## Usage
 
@@ -122,32 +124,33 @@ Using Markdown to edit the fields in the model, we simply replace the `TextField
 from django.db import models
 from vditor.fields import VditorTextField
 
-class ExampleModel (models.Model):
-    name = models.CharField (max_length = 10)
-    content = VditorTextField ()
+class ExampleModel(models.Model):
+    name = models.CharField(max_length = 10)
+    content = VditorTextField()
 ```
 
 Admin in the background, will automatically display markdown edit rich text.
 
 Used in front-end template, you can use like this:
 
-```python
+```html
 {% load static %}
 <! DOCTYPE html>
 <html lang = "en">
     <head>
-        <meta http-equiv = "Content-Type" content = "text / html; charset = utf-8" />
-
-    </ head>
+        <meta http-equiv = "Content-Type" content = "text/html; charset = utf-8" />
+    </head>
     <body>
         <form method = "post" action = "./">
             {% csrf_token%}
             {{form.media}}
-            {{form.as_p}}
-            <p> <input type = "submit" value = "post"> </ p>
-        </ form>
-    </ body>
-</ html>
+            <ul style="display: flex">
+                {{form.as_p}}
+            </ul>
+            <p> <input type = "submit" value = "post"> </p>
+        </form>
+    </body>
+</html>
 
 ```
 
@@ -158,15 +161,15 @@ Use markdown to edit fields in the Form, use `VditorTextFormField` instead of` f
 ```python
 from vditor.fields import VditorTextFormField
 
-class VDitorForm (forms.Form):
-    name = forms.CharField ()
-    content = VditorTextFormField ()
+class VditorForm(forms.Form):
+    name = forms.CharField()
+    content = VditorTextFormField()
 ```
 
 `ModelForm` can automatically convert the corresponding model field to the form field, which can be used normally:
 
 ```python
-class VDitorModleForm (forms.ModelForm):
+class VditorModleForm(forms.ModelForm):
 
     class Meta:
         model = ExampleModel
@@ -186,13 +189,13 @@ from. import models as demo_models
 from vditor.widgets import VditorWidget
 
 
-class ExampleModelAdmin (admin.ModelAdmin):
+class ExampleModelAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.TextField: {'widget': VditorWidget}
     }
 
 
-admin.site.register (demo_models.ExampleModel, ExampleModelAdmin)
+admin.site.register(demo_models.ExampleModel, ExampleModelAdmin)
 ```
 
 ### Customize the toolbar
@@ -201,19 +204,24 @@ Add the following configuration to `settings`:
 
 ```python
 VDITOR_CONFIGS = { # remember to write "' '"
-    "width": "%90", # use numbers or percentages
-    "height": 360, # use numbers
-    "preview_theme": "light", # can fill in dark, light, wechat
-    "typewriterMode": "True", # whether to enable typewriter mode
-    "mode": "ir", # optional modes: sv, ir, wysiwyg
-    "debugger": "false", # whether to show log
-    "value": "", # editor initialization value
-    "theme": "classic", # can fill in classic, dark
-    "icon": "ant", # canfill in ant, material
-    "outline": "false", # show outline
+  'default':{
+      "width": "%90", # use numbers or percentages
+      "height": 360, # use numbers
+      "preview_theme": "light", # can fill in dark, light, wechat
+      "typewriterMode": "True", # whether to enable typewriter mode
+      "mode": "ir", # optional modes: sv, ir, wysiwyg
+      "debugger": "false", # whether to show log
+      "value": "", # editor initialization value
+      "theme": "classic", # can fill in classic, dark
+      "icon": "ant", # canfill in ant, material
+      "outline": "false", # show outline
+  }
 }
 ```
 
 ## Reference
 
 - [django-mdeditor](https://github.com/pylixm/django-mdeditor)
+
+## License
+ [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fpi-dal%2Fdjango-vditor.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fpi-dal%2Fdjango-vditor?ref=badge_large)

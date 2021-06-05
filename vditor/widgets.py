@@ -36,3 +36,13 @@ class VditorWidget(forms.Textarea):
         if extra_attrs:
             attrs.update(extra_attrs)
         return attrs
+
+    def _get_media(self):
+        return forms.Media(
+            css={
+                "all": ("dist/index.css",)
+            },
+            js=(
+                "dist/index.min.js",
+            ))
+    media = property(_get_media)
