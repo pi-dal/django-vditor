@@ -24,6 +24,6 @@ jobs:
         with:
           node-version: '16.x'
 
-      - run: cd vditor && npm install && npm run build && cd dists && mv * ../vditor/dist
+      - run: cd vditor_source_code && npm install && npm run build && cd dists && mv * ../django-vditor/vditor/dist
       - run: rm -rf vditor_source_code
       - run: git add . && git commit -m 'Update to the latest vditor' && git push origin the_latest_vditor
