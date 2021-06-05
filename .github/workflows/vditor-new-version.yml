@@ -1,4 +1,4 @@
-name: Mirror GitHub Auto Queried Repos to Gitee
+name: Update vditor to the latest version
 
 on: [push, pull_request]
 
@@ -24,6 +24,6 @@ jobs:
         with:
           node-version: '15.x'
 
-      - run: cd vditor_source_code && npm install && npm run build && cd dists && mv * ../vditor/dist
+      - run: cd vditor_source_code && npm install && npm run build && cd dist && mv * ../vditor/dist/
       - run: rm -rf vditor_source_code
       - run: git add . && git commit -m 'Update to the latest vditor' && git push origin the_latest_vditor
