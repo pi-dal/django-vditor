@@ -1,4 +1,4 @@
-name: Update vditor to the latest version
+name: Update to the latest vditor version
 
 on: [push, pull_request]
 
@@ -30,11 +30,11 @@ jobs:
         run: |
           cd vditor_source_code && npm install && npm run build && mv dist ../vditor/
           rm -rf vditor_source_code
+
       - name: Commit files
         run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
           git commit -m "Update to the latest vditor version" -a
+
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
