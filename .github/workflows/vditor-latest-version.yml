@@ -37,6 +37,7 @@ jobs:
 
       - name: Commit files
         run: |
+          ls -a
           git commit -m "Update to the latest vditor version" -a
 
       - name: Push changes
