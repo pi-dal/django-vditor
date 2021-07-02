@@ -1,6 +1,14 @@
 name: Update to the latest vditor version
 
-on: [push, pull_request]
+on:
+  schedule:
+    - cron: '0 7 * * fri'
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -37,8 +45,8 @@ jobs:
 
       - name: Commit files
         run: |
-          git config --local user.email "pi-dal@foxmail.com"
-          git config --local user.name "pi-dal"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add .
           git commit -m "Update to the latest vditor version"
 
