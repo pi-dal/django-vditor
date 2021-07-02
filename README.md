@@ -142,10 +142,10 @@ Used in front-end template, you can use like this:
     </head>
     <body>
         <form method = "post" action = "./">
-            {% csrf_token%}
-            {{form.media}}
+            {% csrf_token %}
+            {{ form.media }}
             <ul style="display: flex">
-                {{form.as_p}}
+                {{ form.as_p }}
             </ul>
             <p> <input type = "submit" value = "post"> </p>
         </form>
