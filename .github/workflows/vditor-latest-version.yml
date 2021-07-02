@@ -31,6 +31,7 @@ jobs:
           cd vditor_source_code
           npm install
           npm run build
+          ls -a
           mv dist ../django-vditor/vditor/
           cd ..
           rm -rf vditor_source_code
