@@ -37,7 +37,8 @@ jobs:
 
       - name: Commit files
         run: |
-          git config --list
+          git config --local user.email "pi-dal@foxmail.com"
+          git config --local user.name "pi-dal"
           git add .
           git commit -m "Update to the latest vditor version"
 
