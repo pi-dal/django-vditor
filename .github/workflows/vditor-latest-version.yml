@@ -1,0 +1,57 @@
+name: Update to the latest vditor version
+
+on:
+  schedule:
+    - cron: '0 7 * * fri'
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: main
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Checkout vditor
+        uses: actions/checkout@v2
+        with:
+          repository: Vanessa219/vditor
+          path: vditor_source_code
+
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '15.x'
+      
+      - name: Move the dist folder
+        run: |
+          cd vditor_source_code
+          npm install
+          npm run build
+          mv dist ../vditor/
+          cd ..
+          rm -rf vditor_source_code
+
+      - name: Commit files
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "Update to the latest vditor version"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: dev
