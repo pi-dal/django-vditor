@@ -37,6 +37,8 @@ jobs:
 
       - name: Commit files
         run: |
+          git config --global user.email "pi-dal"
+          git config --global user.name "pi-dal@foxmail.com"
           git commit -m "Update to the latest vditor version" -a
 
       - name: Push changes
