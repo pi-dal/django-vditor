@@ -39,6 +39,7 @@ jobs:
           cd vditor_source_code
           npm install
           npm run build
+          rm -rf ../vditor/static/dist
           mv dist ../vditor/static/
           cd ..
           rm -rf vditor_source_code
