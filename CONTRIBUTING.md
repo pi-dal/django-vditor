@@ -1,4 +1,4 @@
-# Contributing to PDM
+# Contributing to django-vditor
 
 First off, thanks for taking the time to contribute! Contributions include but are not restricted to:
 
@@ -36,17 +36,17 @@ This guideline is for new beginners of OSS. If you are an experienced OSS develo
 
 **ProTips:**
 
-1. Don't modify code on the master branch, the master branch should always keep track of origin/master.
+1. Don't modify code on the dev branch, the dev branch should always keep track of origin/dev.
 
-   To update master branch to date:
+   To update dev branch to date:
 
    ```bash
-   $ git pull origin master
-   # In rare cases that your local master branch diverges from the remote master:
-   $ git fetch origin && git reset --hard master
+   $ git pull origin dev
+   # In rare cases that your local dev branch diverges from the remote dev:
+   $ git fetch origin && git reset --hard dev
    ```
 
-2. Create a new branch based on the up-to-date master for new patches.
+2. Create a new branch based on the up-to-date dev for new patches.
 
 3. Create a Pull Request from that patch branch.
 
@@ -86,6 +86,3 @@ $ python3 -m coverage run manage.py test
 # Get XML file
 $ python3 -m coverage xml
 ```
-
-
-
