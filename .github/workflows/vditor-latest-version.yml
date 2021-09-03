@@ -50,3 +50,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           message: 'Update to the latest vditor version'
           branch: 'dev'
+          empty: true
+          force: true
