@@ -16,10 +16,6 @@ jobs:
         with:
           python-version: 3.8
           architecture: "x64"
-      - name: Get Changelog
-        id: get-changelog
-        run: |
-          awk '/-{3,}/{flag=1;next}/Release/{if (flag==1)exit}flag' CHANGELOG.md > .changelog.md
       - name: Install PDM
         run: |
           pip install -U pip
