@@ -31,17 +31,17 @@ jobs:
         run: |
           pip install twine
           twine upload --username __token__ --password ${{ secrets.PYPI_TOKEN }} dist/*
-<<<<<<< HEAD
       - name: Create Release
         uses: actions/create-release@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-=======
       - name: Get version from tag
         id: tag_name
         run: |
           echo ::set-output name=current_version::${GITHUB_REF#refs/tags/v}
         shell: bash
+      - name: Checkout code
+        uses: actions/checkout@v2
       - name: Get Changelog Entry
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2
@@ -51,10 +51,13 @@ jobs:
           path: ./CHANGELOG.md
       - name: Create/update release
         uses: ncipollo/release-action@v1
->>>>>>> 6113fff... fix(Update-CI/CD-file):update pypi-release.yml
         with:
-          tag_name: ${{ github.ref }}
-          release_name: v${{ github.ref }}
-          body_path: .changelog.md
-          draft: false
-          prerelease: false
+          # This pulls from the "Get Changelog Entry" step above, referencing it's ID to get its outputs object.
+          # See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          tag: ${{ steps.changelog_reader.outputs.version }}
+          name: Release ${{ steps.changelog_reader.outputs.version }}
+          body: ${{ steps.changelog_reader.outputs.changes }}
+          prerelease: ${{ steps.changelog_reader.outputs.status == 'prereleased' }}
+          draft: ${{ steps.changelog_reader.outputs.status == 'unreleased' }}
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
