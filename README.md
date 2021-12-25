@@ -7,10 +7,10 @@
 <br>
 <strong>django-vditor</strong> was inspired by great <a href="https://github.com/pylixm/django-mdeditor">django-mdeditor</a>.
 <br><br>
-<a title="python-version" target="_blank" href="https://github.com/pi-dal/django-vditor"><img alt="python-version" src="https://img.shields.io/badge/python-3.7+-purper.svg"></a>
+<a title="python-version" target="_blank" href="https://github.com/pi-dal/django-vditor"><img alt="python-version" src="https://img.shields.io/badge/python-3.5+-purper.svg"></a>
 <a title="django-version" target="_blank" href="https://pdm.fming.dev"><img alt="django-version" src="https://img.shields.io/badge/django-2.2+-green.svg"></a>
 <a title="last-commit" target="_blank" href="https://github.com/pi-dal/django-vditor/commits/main"><img src="https://img.shields.io/github/last-commit/pi-dal/django-vditor?color=blue"></a> 
-<a title="pdm-managed" target="_blank" href="https://github.com/pi-dal/django-vditor/commits/main"><img src="https://img.shields.io/badge/pdm-managed-blueviolet"></a>
+<a title="pdm-managed" target="_blank" href="https://github.com/frostming/pdm"><img src="https://img.shields.io/badge/pdm-managed-blueviolet"></a>
 <br>
 <a title="Codacy-Badge" target="_blank" href="https://www.codacy.com/gh/pi-dal/django-vditor/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=pi-dal/django-vditor&amp;utm_campaign=Badge_Grade"><img src="https://img.shields.io/codacy/grade/d23000f233344a9891189a816b58f9b1"></a>
 <a title="Codacy-Coveralls-Badge" target="_blank" href="https://www.codacy.com/gh/pi-dal/django-vditor/dashboard?utm_source=github.com&utm_medium=referral&utm_content=pi-dal/django-vditor&utm_campaign=Badge_Coverage"><img src="https://img.shields.io/codacy/coverage/d23000f233344a9891189a816b58f9b1"></a>
@@ -222,6 +222,3 @@ VDITOR_CONFIGS = { # remember to write "' '"
 ## Reference
 
 - [django-mdeditor](https://github.com/pylixm/django-mdeditor)
-
-## License
- [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fpi-dal%2Fdjango-vditor.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fpi-dal%2Fdjango-vditor?ref=badge_large)
