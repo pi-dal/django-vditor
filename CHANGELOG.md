@@ -1,3 +1,14 @@
+# [1.1.1](https://github.com/pi-dal/django-vditor/compare/v1.1.0...v1.1.1) (2021-12-25)
+
+
+ ### Bug Fixes
+
+ * **Update vditor version to v3.8.10 (#7):** Update vditor version to v3.8.10 (#7) ([6ccdbba](https://github.com/pi-dal/django-vditor/commit/6ccdbbad2899288f27e90f8399c303e3906b5497))
+ * **Update-CI/CD-file:** Allow forced and empty commit ([f6098f4](https://github.com/pi-dal/django-vditor/commit/f6098f4788279ed7d1c018ab9beabd5ce5a178f4))
+ * **Update-CI/CD-file:** Make the dist folder not duplicate in CI/CD ([4c97436](https://github.com/pi-dal/django-vditor/commit/4c9743633565b60e490407d224d11a910216e799))
+
+
+
 # [1.1.0](https://github.com/pi-dal/django-vditor/compare/v1.0.1...v1.1.0) (2021-08-01)
 
 

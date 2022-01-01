@@ -1,10 +1,14 @@
 __pypackages__/
 __pycache__/
+node_modules/
+package-lock.json
+package.json
 .DS_Store
 .vscode/
 *.py[cod]
 *$py.class
 .pdm.toml
+.gitpod.yml
 
 # C extensions
 *.so
