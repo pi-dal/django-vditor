@@ -1,3 +1,7 @@
+# [](https://github.com/pi-dal/django-vditor/compare/v1.1.1...v) (2022-01-01)
+
+
+
 # [1.1.1](https://github.com/pi-dal/django-vditor/compare/v1.1.0...v1.1.1) (2021-12-25)
 
 
