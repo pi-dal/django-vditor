@@ -5,7 +5,7 @@ description = "A WYSIWYG editor plugin made by vditor for django"
 readme = "README.md"
 keywords = ["django", "editor", "django-application"]
 authors = [
-    {name = "pi-dal", email = "pi-dal@foxmail.com"},
+    {name = "pi-dal", email = "hi@pi-dal.com"},
 ]
 dependencies = [
     "django>=2.2",
