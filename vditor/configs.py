@@ -1,7 +1,10 @@
+import logging
 from typing import Any, Dict
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+
+logger = logging.getLogger(__name__)
 
 
 def get_default_config() -> Dict[str, Any]:
@@ -185,21 +188,43 @@ class VditorConfig(dict):
         self["lang"] = language_map.get(settings.LANGUAGE_CODE, "en_US")
 
     def set_configs(self, config_name: str = "default") -> None:
+        """Load and apply configuration from Django settings.
+
+        Args:
+            config_name: Name of the configuration to load
+
+        Raises:
+            ImproperlyConfigured: If configuration is invalid
+        """
         configs: Any = getattr(settings, "VDITOR_CONFIGS", None)
         if configs:
+            logger.debug(f"Loading Vditor configuration: {config_name}")
+
             if not isinstance(configs, dict):
-                raise ImproperlyConfigured(
-                    "VDITOR_CONFIGS setting must be a dictionary type."
-                )
+                error_msg = "VDITOR_CONFIGS setting must be a dictionary type."
+                logger.error(error_msg)
+                raise ImproperlyConfigured(error_msg)
 
             if config_name in configs:
                 config: Any = configs[config_name]
                 if not isinstance(config, dict):
-                    raise ImproperlyConfigured(
-                        f'VDITOR_CONFIGS["{config_name}"] setting must be a dictionary type.'
-                    )
+                    error_msg = f'VDITOR_CONFIGS["{config_name}"] setting must be a dictionary type.'
+                    logger.error(error_msg)
+                    raise ImproperlyConfigured(error_msg)
+
+                logger.debug(
+                    f"Applied configuration '{config_name}' with {len(config)} settings"
+                )
                 self.update(config)
             else:
-                raise ImproperlyConfigured(
-                    f"No configuration named ''{config_name}'' found in your VDITOR_CONFIGS setting."
+                available_configs = list(configs.keys())
+                error_msg = (
+                    f"No configuration named '{config_name}' found in your VDITOR_CONFIGS setting. "
+                    f"Available configurations: {available_configs}"
                 )
+                logger.error(error_msg)
+                raise ImproperlyConfigured(error_msg)
+        else:
+            logger.debug(
+                f"Using default configuration for '{config_name}' (no VDITOR_CONFIGS found)"
+            )

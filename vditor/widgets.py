@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Any, Dict, Optional
 
 from django import forms
@@ -9,11 +10,19 @@ from django.utils.safestring import mark_safe
 
 from .configs import VditorConfig
 
+logger = logging.getLogger(__name__)
+
 
 class VditorWidget(forms.Textarea):
     def __init__(self, config_name: str = "default", *args: Any, **kwargs: Any) -> None:
         super(VditorWidget, self).__init__(*args, **kwargs)
-        self.config: VditorConfig = VditorConfig(config_name)
+        try:
+            self.config: VditorConfig = VditorConfig(config_name)
+            logger.debug(f"Initialized VditorWidget with config '{config_name}'")
+        except Exception as e:
+            logger.error(f"Failed to initialize VditorConfig '{config_name}': {e}")
+            # Fall back to default config
+            self.config = VditorConfig("default")
 
     def render(
         self,
@@ -43,7 +52,15 @@ class VditorWidget(forms.Textarea):
             "config": json.dumps(self.config),
         }
 
-        return mark_safe(renderer.render("widget.html", context))
+        try:
+            rendered_html = renderer.render("widget.html", context)
+            return mark_safe(rendered_html)
+        except Exception as e:
+            logger.error(f"Failed to render VditorWidget template: {e}")
+            # Fallback to basic textarea
+            return mark_safe(
+                f'<textarea name="{name}" id="{_id}">{force_str(value)}</textarea>'
+            )
 
     def build_attrs(
         self,
