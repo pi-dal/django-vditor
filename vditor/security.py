@@ -8,10 +8,9 @@ file validation, content sanitization, and upload protection.
 import logging
 import re
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict
 
 from django.conf import settings
-from django.utils.html import escape
 from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)

@@ -1,18 +1,13 @@
 import hashlib
 import logging
-import mimetypes
 import os
-import uuid
 from pathlib import Path
-from typing import Any, Dict
 
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.http import HttpRequest, JsonResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_control, cache_page
+from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.gzip import gzip_page
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.vary import vary_on_headers
 from werkzeug.utils import secure_filename
@@ -254,7 +249,8 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
         file_path = upload_path / unique_filename
 
         logger.info(
-            f"Processing upload: {original_filename} -> {unique_filename} (hash: {content_hash})"
+            f"Processing upload: {original_filename} -> {unique_filename} "
+            f"(hash: {content_hash})"
         )
 
         # Check if file already exists (deduplication)

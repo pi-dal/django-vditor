@@ -47,7 +47,7 @@ class VditorImagesUploadViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["code"], 0)
         self.assertEqual(response.json()["msg"], "Success!")
-        
+
         # Check that a URL was generated (exact filename will vary due to hash)
         response_data = response.json()
         self.assertIn("test_image.png", response_data["data"]["succMap"])
@@ -57,10 +57,11 @@ class VditorImagesUploadViewTest(TestCase):
 
         # Verify that a file was created (filename will have hash prefix)
         import glob
+
         file_pattern = os.path.join(settings.MEDIA_ROOT, "*_test_image.png")
         matching_files = glob.glob(file_pattern)
         self.assertTrue(len(matching_files) > 0, "No uploaded file found")
-        
+
         # Verify file content
         if matching_files:
             with open(matching_files[0], "rb") as f:
@@ -94,8 +95,9 @@ class VditorWidgetTest(TestCase):
     def test_init(self):
         # Clear cache to ensure we test actual configuration
         from django.core.cache import cache
+
         cache.clear()
-        
+
         with override_settings(LANGUAGE_CODE="en"):
             widget = VditorWidget()
             self.assertIsInstance(widget.config, dict)
@@ -192,10 +194,12 @@ class VditorConfigTest(TestCase):
     def test_vditor_config_init_default(self):
         # Clear cache to ensure we test actual configuration
         from django.core.cache import cache
+
         cache.clear()
-        
+
         # Reset language code to default
         from django.test import override_settings
+
         with override_settings(LANGUAGE_CODE="en"):
             config = VditorConfig()
             self.assertIsInstance(config, dict)
@@ -207,8 +211,9 @@ class VditorConfigTest(TestCase):
     def test_vditor_config_init_custom_language(self):
         # Clear cache to ensure we test the actual language setting
         from django.core.cache import cache
+
         cache.clear()
-        
+
         config = VditorConfig()
         self.assertEqual(config["lang"], "fr_FR")
 
@@ -225,8 +230,9 @@ class VditorConfigTest(TestCase):
     def test_vditor_config_improperly_configured_not_dict(self):
         # Clear cache to ensure we test the actual configuration loading
         from django.core.cache import cache
+
         cache.clear()
-        
+
         with self.assertRaisesMessage(
             ImproperlyConfigured, "VDITOR_CONFIGS setting must be a dictionary type."
         ):
@@ -236,11 +242,12 @@ class VditorConfigTest(TestCase):
     def test_vditor_config_improperly_configured_config_not_found(self):
         # Clear cache to ensure we test the actual configuration loading
         from django.core.cache import cache
+
         cache.clear()
-        
+
         with self.assertRaises(ImproperlyConfigured) as cm:
             VditorConfig(config_name="non_existent")
-        
+
         error_msg = str(cm.exception)
         self.assertIn("No configuration named 'non_existent' found", error_msg)
         self.assertIn("Available configurations:", error_msg)
@@ -267,60 +274,62 @@ class VditorFieldsTest(TestCase):
 
 class VditorSecurityTest(TestCase):
     """Test security features."""
-    
+
     def test_filename_validation(self):
         from vditor.views import _validate_filename_security
-        
+
         # Valid filename
         self.assertTrue(_validate_filename_security("test.png")[0])
-        
+
         # Invalid filenames
         self.assertFalse(_validate_filename_security("../test.png")[0])
         self.assertFalse(_validate_filename_security("test<>.png")[0])
         self.assertFalse(_validate_filename_security("CON.png")[0])
         self.assertFalse(_validate_filename_security("test~.png")[0])
-        
+
     def test_file_validation_size(self):
         from django.core.files.uploadedfile import SimpleUploadedFile
         from vditor.views import _validate_uploaded_file
-        
+
         # Too small file
         small_file = SimpleUploadedFile("test.png", b"x", content_type="image/png")
         is_valid, error = _validate_uploaded_file(small_file)
         self.assertFalse(is_valid)
         self.assertIn("too small", error)
-        
+
         # Valid file
-        valid_file = SimpleUploadedFile("test.png", b"x" * 100, content_type="image/png")
+        valid_file = SimpleUploadedFile(
+            "test.png", b"x" * 100, content_type="image/png"
+        )
         is_valid, error = _validate_uploaded_file(valid_file)
         self.assertTrue(is_valid)
 
 
 class VditorCacheTest(TestCase):
     """Test caching functionality."""
-    
+
     def test_config_caching(self):
         from vditor.cache_utils import ConfigCache
-        
+
         # Test setting and getting config
         test_config = {"test": "value"}
         ConfigCache.set_config("test_config", test_config)
-        
+
         retrieved_config = ConfigCache.get_config("test_config")
         self.assertEqual(retrieved_config, test_config)
-        
+
         # Test invalidation
         ConfigCache.invalidate_config("test_config")
         self.assertIsNone(ConfigCache.get_config("test_config"))
-        
+
     def test_media_cache(self):
         from vditor.cache_utils import MediaCache
-        
+
         # Test media hash generation
         hash1 = MediaCache.get_media_hash()
         hash2 = MediaCache.get_media_hash()
         self.assertEqual(hash1, hash2)  # Should be cached
-        
+
         # Test invalidation
         MediaCache.invalidate_media()
         hash3 = MediaCache.get_media_hash()

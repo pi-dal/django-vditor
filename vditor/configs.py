@@ -230,23 +230,29 @@ class VditorConfig(dict):
             if config_name in configs:
                 config: Any = configs[config_name]
                 if not isinstance(config, dict):
-                    error_msg = f'VDITOR_CONFIGS["{config_name}"] setting must be a dictionary type.'
+                    error_msg = (
+                        f'VDITOR_CONFIGS["{config_name}"] setting must be a '
+                        f"dictionary type."
+                    )
                     logger.error(error_msg)
                     raise ImproperlyConfigured(error_msg)
 
                 logger.debug(
-                    f"Applied configuration '{config_name}' with {len(config)} settings"
+                    f"Applied configuration '{config_name}' with "
+                    f"{len(config)} settings"
                 )
                 self.update(config)
             else:
                 available_configs = list(configs.keys())
                 error_msg = (
-                    f"No configuration named '{config_name}' found in your VDITOR_CONFIGS setting. "
-                    f"Available configurations: {available_configs}"
+                    f"No configuration named '{config_name}' found in your "
+                    f"VDITOR_CONFIGS setting. Available configurations: "
+                    f"{available_configs}"
                 )
                 logger.error(error_msg)
                 raise ImproperlyConfigured(error_msg)
         else:
             logger.debug(
-                f"Using default configuration for '{config_name}' (no VDITOR_CONFIGS found)"
+                f"Using default configuration for '{config_name}' "
+                f"(no VDITOR_CONFIGS found)"
             )

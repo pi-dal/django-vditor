@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 from django.urls import reverse
 from django.views import generic
-from django.shortcuts import render
 
 from . import forms
 from .models import VditorTest
