@@ -1,17 +1,22 @@
 [project]
 name = "django-vditor"
-version = {use_scm = true}
+version = "0.1.0"
 description = "A WYSIWYG editor plugin made by vditor for django"
 readme = "README.md"
-keywords = ["django", "editor", "django-application"]
+keywords = [
+    "django",
+    "editor",
+    "django-application",
+]
 authors = [
     {name = "pi-dal", email = "hi@pi-dal.com"},
 ]
 dependencies = [
-    "django>=2.2",
+    "django>=5.2",
+    "werkzeug",
 ]
-requires-python = ">=3.5"
-dynamic = ["version", "classifiers"]
+requires-python = ">=3.10"
+classifiers = []
 license = {text = "MIT"}
 
 [project.urls]
@@ -28,9 +33,14 @@ includes = [
 
 [tool.pdm.dev-dependencies]
 dev = [
-    "coverage~=5.4",
+    "coverage>=7.0",
+    "flake8",
+    "black",
+    "mypy",
+    "safety",
+    "twine",
 ]
 
 [build-system]
-requires = ["pdm-pep517"]
-build-backend = "pdm.pep517.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
