@@ -1,8 +1,10 @@
+from typing import Any, Dict
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 
-def get_default_config():
+def get_default_config() -> Dict[str, Any]:
     return {
         "width": "100%",
         "height": "auto",
@@ -162,13 +164,13 @@ def get_default_config():
 
 
 class VditorConfig(dict):
-    def __init__(self, config_name="default"):
+    def __init__(self, config_name: str = "default") -> None:
         self.update(get_default_config())
         self.set_language()
         self.set_configs(config_name)
 
-    def set_language(self):
-        language_map = {
+    def set_language(self) -> None:
+        language_map: Dict[str, str] = {
             "zh-hans": "zh_CN",
             "ja": "ja_JP",
             "ko": "ko_KR",
@@ -182,8 +184,8 @@ class VditorConfig(dict):
         }
         self["lang"] = language_map.get(settings.LANGUAGE_CODE, "en_US")
 
-    def set_configs(self, config_name="default"):
-        configs = getattr(settings, "VDITOR_CONFIGS", None)
+    def set_configs(self, config_name: str = "default") -> None:
+        configs: Any = getattr(settings, "VDITOR_CONFIGS", None)
         if configs:
             if not isinstance(configs, dict):
                 raise ImproperlyConfigured(
@@ -191,7 +193,7 @@ class VditorConfig(dict):
                 )
 
             if config_name in configs:
-                config = configs[config_name]
+                config: Any = configs[config_name]
                 if not isinstance(config, dict):
                     raise ImproperlyConfigured(
                         f'VDITOR_CONFIGS["{config_name}"] setting must be a dictionary type.'

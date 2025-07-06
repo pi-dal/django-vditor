@@ -2,9 +2,10 @@ import logging
 import os
 import uuid
 from pathlib import Path
+from typing import Any
 
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def vditor_images_upload_view(request):
+def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
     image_file = request.FILES.get("file[]")
 
     if not image_file:

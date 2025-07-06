@@ -1,41 +1,40 @@
 {% load static %}
 <br><br>
-<div id="VditorText">
-</div>
-<!--<textarea> is blocked in Vditor, so use the external <textarea> value-->
-<textarea {{ final_attrs|safe }} style="display: none">{{ value }}</textarea>
+<div id="vditor-{{ id }}" style="height: {{ config.height }}; width: {{ config.width }};"></div>
+<textarea {{ final_attrs|safe }} style="display: none;">{{ value }}</textarea>
 
 <script type="text/javascript">
-    const vditor = new Vditor("VditorText", {
-        width: '{{ config.width|safe }}',
-        height: '{{ config.height }}',
-        lang: '{{ config.lang|safe }}',
-        typewriterMode: '{{ config.typewriterMode|safe }}',
-        mode: '{{ config.mode|safe }}',
-        debugger: '{{ config.debugger|safe }}',
-        value: '{{ config.value|safe }}',
-        theme: '{{ config.theme|safe }}',
-        icon: '{{ config.icon|safe }}',
-        outline: '{{config.outline }}',
-        cdn: '/static',
-        preview: {
-            theme: {
-                current: '{{ config.preview_theme|safe }}',
-                path: '/static/dist/css/content-theme'
+    (function() {
+        var config = JSON.parse('{{ config|escapejs }}');
+        var textareaId = '{{ id }}';
+        var textareaElement = document.getElementById(textareaId);
+
+        // Set initial value from textarea
+        if (textareaElement && textareaElement.value) {
+            config.value = textareaElement.value;
+        }
+
+        // Set CDN path for Vditor assets
+        config.cdn = '{% static "dist" %}';
+
+        var vditor = new Vditor('vditor-' + textareaId, {
+            ...config,
+            input: function(md) {
+                if (textareaElement) {
+                    textareaElement.value = md;
+                }
             },
-        },
-        upload: {
-            url: '/vditor/uploads/',
-            linkToImgUrl: '/vditor/uploads/',
-            accept: '.jpg,.png,.gif,.jpeg',
-            filename(name) {
-                return name.replace(/\?|\\|\/|:|\||<|>|\*|\[|\]|\s+/g, '-')
-            },
-        },
-        input(md) {
-            document.getElementById('id_content').value = md
-        },
-    })
-    //clear cache
-    vditor.clearCache();
+            after: function() {
+                // Ensure the textarea value is updated after Vditor is initialized
+                if (textareaElement && vditor.getValue() !== textareaElement.value) {
+                    vditor.setValue(textareaElement.value);
+                }
+            }
+        });
+
+        // Clear cache if enabled in config
+        if (config.cache && config.cache.enable) {
+            vditor.clearCache();
+        }
+    })();
 </script>
