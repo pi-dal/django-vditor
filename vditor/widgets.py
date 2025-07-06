@@ -1,8 +1,10 @@
 import json
 import logging
+from functools import lru_cache
 from typing import Any, Dict, Optional
 
 from django import forms
+from django.core.cache import cache
 from django.forms.utils import flatatt
 from django.forms.widgets import get_default_renderer
 from django.utils.encoding import force_str
@@ -12,17 +14,48 @@ from .configs import VditorConfig
 
 logger = logging.getLogger(__name__)
 
+# Cache timeout for configurations (5 minutes)
+CONFIG_CACHE_TIMEOUT = 300
+
 
 class VditorWidget(forms.Textarea):
     def __init__(self, config_name: str = "default", *args: Any, **kwargs: Any) -> None:
         super(VditorWidget, self).__init__(*args, **kwargs)
+        self.config_name = config_name
         try:
-            self.config: VditorConfig = VditorConfig(config_name)
+            self.config: VditorConfig = self._get_cached_config(config_name)
             logger.debug(f"Initialized VditorWidget with config '{config_name}'")
         except Exception as e:
             logger.error(f"Failed to initialize VditorConfig '{config_name}': {e}")
             # Fall back to default config
-            self.config = VditorConfig("default")
+            self.config = self._get_cached_config("default")
+
+    @lru_cache(maxsize=32)
+    def _get_cached_config(self, config_name: str) -> VditorConfig:
+        """Get configuration with caching to improve performance.
+
+        Args:
+            config_name: Name of configuration to load
+
+        Returns:
+            VditorConfig instance
+        """
+        cache_key = f"vditor_config_{config_name}"
+        config_dict = cache.get(cache_key)
+
+        if config_dict is None:
+            # Load config and cache it
+            config = VditorConfig(config_name)
+            config_dict = dict(config)
+            cache.set(cache_key, config_dict, CONFIG_CACHE_TIMEOUT)
+            logger.debug(f"Cached configuration '{config_name}'")
+        else:
+            # Create config from cached dict
+            config = VditorConfig.__new__(VditorConfig)
+            config.update(config_dict)
+            logger.debug(f"Using cached configuration '{config_name}'")
+
+        return config
 
     def render(
         self,
@@ -73,18 +106,12 @@ class VditorWidget(forms.Textarea):
             attrs.update(extra_attrs)
         return attrs
 
+    @lru_cache(maxsize=1)
     def _get_media(self) -> forms.Media:
+        """Get media files with caching for better performance."""
         return forms.Media(
-            css={
-                "all": (
-                    "dist/index.css",
-                    "dist/index.min.css",  # Add minified version
-                )
-            },
-            js=(
-                "dist/index.js",
-                "dist/index.min.js",  # Add minified version
-            ),
+            css={"all": ("dist/index.min.css",)},  # Use minified version in production
+            js=("dist/index.min.js",),  # Use minified version in production
         )
 
     media = property(_get_media)

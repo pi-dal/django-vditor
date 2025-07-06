@@ -10,8 +10,9 @@ from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_control
+from django.views.decorators.cache import cache_control, cache_page
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.gzip import gzip_page
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.vary import vary_on_headers
 from werkzeug.utils import secure_filename
@@ -260,7 +261,9 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
         if file_path.exists():
             logger.info(f"File already exists, using existing: {unique_filename}")
             file_url = os.path.join(settings.MEDIA_URL, unique_filename)
-            return JsonResponse(
+
+            # Cache the response for successful duplicates
+            response = JsonResponse(
                 {
                     "msg": _("File uploaded successfully (deduplicated)."),
                     "code": 0,
@@ -272,6 +275,8 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
                     },
                 }
             )
+            response["Cache-Control"] = "public, max-age=3600"  # Cache for 1 hour
+            return response
 
     except Exception as e:
         logger.error(f"Failed to process filename '{original_filename}': {e}")
@@ -346,7 +351,7 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
         file_url = os.path.join(settings.MEDIA_URL, unique_filename)
         logger.info(f"Upload completed successfully: {file_url}")
 
-        return JsonResponse(
+        response = JsonResponse(
             {
                 "msg": _("Success!"),
                 "code": 0,
@@ -358,6 +363,9 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
                 },
             }
         )
+        # Cache successful uploads for better performance
+        response["Cache-Control"] = "public, max-age=3600"  # Cache for 1 hour
+        return response
     except Exception as e:
         logger.error(f"Failed to generate file URL: {e}")
         # Clean up the file if URL generation fails

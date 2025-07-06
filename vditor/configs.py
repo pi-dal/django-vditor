@@ -168,9 +168,31 @@ def get_default_config() -> Dict[str, Any]:
 
 class VditorConfig(dict):
     def __init__(self, config_name: str = "default") -> None:
+        # Try to load from cache first
+        try:
+            from .cache_utils import ConfigCache
+
+            cached_config = ConfigCache.get_config(config_name)
+            if cached_config:
+                self.update(cached_config)
+                logger.debug(f"Loaded config '{config_name}' from cache")
+                return
+        except ImportError:
+            # Cache utils not available, proceed normally
+            pass
+
+        # Cache miss or not available - build config
         self.update(get_default_config())
         self.set_language()
         self.set_configs(config_name)
+
+        # Cache the result
+        try:
+            from .cache_utils import ConfigCache
+
+            ConfigCache.set_config(config_name, dict(self))
+        except ImportError:
+            pass
 
     def set_language(self) -> None:
         language_map: Dict[str, str] = {
