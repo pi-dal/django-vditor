@@ -1,7 +1,5 @@
 from django.urls import path
-from .views import VditorImagesUploadView
+from .views import vditor_images_upload_view
 
 
-urlpatterns = [
-    path('uploads/', VditorImagesUploadView, name='uploads')
-]
+urlpatterns = [path("uploads/", vditor_images_upload_view, name="uploads")]

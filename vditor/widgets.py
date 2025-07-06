@@ -1,35 +1,42 @@
+import json
+
 from django import forms
 from django.forms.utils import flatatt
 from django.forms.widgets import get_default_renderer
-from django.utils.encoding import force_text
-from django.utils.html import conditional_escape
+from django.utils.encoding import force_str
 from django.utils.safestring import mark_safe
 
 from .configs import VditorConfig
 
+
 class VditorWidget(forms.Textarea):
-    def __init__(self, config_name = 'default', *args, **kwargs):
+    def __init__(self, config_name="default", *args, **kwargs):
         super(VditorWidget, self).__init__(*args, **kwargs)
         self.config = VditorConfig(config_name)
 
-    def render(self, value, name, attrs=None, renderer=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if renderer is None:
             renderer = get_default_renderer()
         if value is None:
             value = ""
         final_attrs = self.build_attrs(self.attrs, attrs, name=name)
-        
-        return mark_safe(
-            renderer.render(
-                'widget.html',
-                {
-                    'final_attrs': flatatt(final_attrs),
-                    'value': conditional_escape(force_text(value)),
-                    'id': final_attrs['id'],
-                    'config': self.config,
-                }
-                )
-            )
+
+        # Ensure the id is present in final_attrs
+        _id = final_attrs.get("id")
+        if not _id:
+            _id = "id_" + name.replace(
+                "-", "_"
+            )  # Generate a predictable ID if not present
+            final_attrs["id"] = _id
+
+        context = {
+            "final_attrs": flatatt(final_attrs),
+            "value": force_str(value),
+            "id": _id,
+            "config": json.dumps(self.config),
+        }
+
+        return mark_safe(renderer.render("widget.html", context))
 
     def build_attrs(self, base_attrs, extra_attrs=None, **kwargs):
         attrs = dict(base_attrs, **kwargs)
@@ -40,9 +47,15 @@ class VditorWidget(forms.Textarea):
     def _get_media(self):
         return forms.Media(
             css={
-                "all": ("dist/index.css",)
+                "all": (
+                    "dist/index.css",
+                    "dist/index.min.css",  # Add minified version
+                )
             },
             js=(
-                "dist/index.min.js",
-            ))
+                "dist/index.js",
+                "dist/index.min.js",  # Add minified version
+            ),
+        )
+
     media = property(_get_media)

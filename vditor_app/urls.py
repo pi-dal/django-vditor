@@ -3,5 +3,5 @@ from .views import vditor_form_view
 
 
 urlpatterns = [
-    path('', vditor_form_view, name='vditor_form'),
+    path("", vditor_form_view, name="vditor_form"),
 ]

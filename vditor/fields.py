@@ -14,16 +14,14 @@ class VditorTextField(models.TextField):
 
     def formfield(self, **kwargs):
         defaults = {
-            'form_class' : self._get_form_class(),
-            'config_name' : self.config_name
+            "form_class": self._get_form_class(),
+            "config_name": self.config_name,
         }
         defaults.update(kwargs)
         return super(VditorTextField, self).formfield(**defaults)
 
 
 class VditorTextFormField(forms.fields.CharField):
-    def __init__(self, config_name = 'default', *arg, **kwargs):
-        kwargs.update({
-            'widget' : VditorWidget(config_name=config_name)
-        })
+    def __init__(self, config_name="default", *arg, **kwargs):
+        kwargs.update({"widget": VditorWidget(config_name=config_name)})
         super(VditorTextFormField, self).__init__(*arg, **kwargs)
