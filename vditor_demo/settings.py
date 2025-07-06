@@ -103,6 +103,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+from django.utils.translation import gettext_lazy as _
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
 
@@ -116,6 +118,15 @@ USE_L10N = True
 
 USE_TZ = True
 
+LANGUAGES = [
+    ('en', _('English')),
+    ('zh-hans', _('Simplified Chinese')),
+]
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
@@ -126,3 +137,35 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 MEDIA_URL = '/media/'
+
+VDITOR_CONFIGS = {
+    'default': {
+        'width': '100%',
+        'height': 720,
+        'tab': '	',
+        'toolbar': [
+            'emoji', 'headings', 'bold', 'italic', 'strike', 'link', '|',
+            'list', 'ordered-list', 'check', 'outdent', 'indent', '|',
+            'quote', 'line', 'code', 'inline-code', 'insert-before', 'insert-after', '|',
+            'upload', 'table', '|',
+            'undo', 'redo', '|',
+            'fullscreen', 'edit-mode', 'both', 'preview', 'export',
+            {'name': 'more', 'toolbar': ['fullscreen', 'edit-mode', 'both', 'preview', 'export']}
+        ],
+        "upload": {
+            "url": "/vditor/uploads/",
+            "max": 1024 * 1024 * 10,
+            "accept": "image/*",
+            "token": "test",
+            "withCredentials": 'false',
+            "linkToImgUrl": "/vditor/uploads/",
+            "filename": "file[]"
+        },
+        'preview': {
+            'markdown': {
+                'toc': 'true',
+                'autoSpace': 'true'
+            }
+        }
+    }
+}
