@@ -42,12 +42,12 @@ dev = [
 ]
 
 [tool.pdm.scripts]
-test = "python manage.py test"
+test = {cmd = ["python", "manage.py", "test"]}
 lint = "flake8 ."
 format = "black ."
 format-check = "black --check ."
 typecheck = "mypy --ignore-missing-imports vditor/ vditor_demo/"
-coverage = "coverage run manage.py test"
+coverage = {cmd = ["coverage", "run", "manage.py", "test"]}
 coverage-report = "coverage report -m"
 
 [tool.mypy]
