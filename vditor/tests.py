@@ -1,6 +1,5 @@
 import json
 import os
-import uuid
 from unittest.mock import patch, mock_open
 
 from django.conf import settings
@@ -13,8 +12,6 @@ from vditor.widgets import VditorWidget
 from vditor.configs import VditorConfig, get_default_config
 from vditor.fields import VditorTextField, VditorTextFormField
 from django import forms
-from django.forms.widgets import get_default_renderer
-from django.utils.safestring import mark_safe
 
 
 @override_settings(MEDIA_ROOT="/tmp/media", MEDIA_URL="/media/")
@@ -132,7 +129,7 @@ class VditorWidgetTest(TestCase):
         name = "test_name"
         value = None
         rendered_html = widget.render(name, value)
-        self.assertIn(f"></textarea>", rendered_html)  # Empty textarea
+        self.assertIn("></textarea>", rendered_html)  # Empty textarea
 
     def test_render_id_from_attrs(self):
         widget = VditorWidget(attrs={"id": "my_custom_id"})
@@ -156,7 +153,8 @@ class VditorWidgetTest(TestCase):
         mock_renderer.render.assert_called_once_with(
             "widget.html",
             {
-                "final_attrs": ' cols="40" id="id_test_name" name="test_name" rows="10"',
+                "final_attrs": ' cols="40" id="id_test_name" '
+                'name="test_name" rows="10"',
                 "value": "test_value",
                 "id": "id_test_name",
                 "config": json.dumps(VditorConfig()),
@@ -332,5 +330,4 @@ class VditorCacheTest(TestCase):
 
         # Test invalidation
         MediaCache.invalidate_media()
-        hash3 = MediaCache.get_media_hash()
         # Hash might be the same or different depending on timing

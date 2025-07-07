@@ -226,7 +226,7 @@ def log_security_event(event_type: str, details: Dict, request=None):
             {
                 "ip": request.META.get("REMOTE_ADDR", "unknown"),
                 "user_agent": request.META.get("HTTP_USER_AGENT", "unknown"),
-                "user": getattr(request, "user", None),
+                "user": str(getattr(request, "user", None)),
             }
         )
 
