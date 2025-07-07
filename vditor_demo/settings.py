@@ -27,7 +27,7 @@ SECRET_KEY = "ss$!h=r#z3$(*w462fr316)$kze5jcj9cexdcwvpz3!s1cyym6"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list[str] = []
 
 
 # Application definition
