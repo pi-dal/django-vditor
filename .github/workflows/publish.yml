@@ -38,14 +38,14 @@ jobs:
 
     - name: Run tests
       run: |
-        pdm run coverage run manage.py test
-        pdm run coverage report -m
+        pdm run coverage
+        pdm run coverage-report
 
     - name: Run linting
       run: |
-        pdm run flake8 .
-        pdm run black --check .
-        pdm run mypy .
+        pdm run lint
+        pdm run format-check
+        pdm run typecheck
 
   build:
     runs-on: ubuntu-latest

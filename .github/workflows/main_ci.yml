@@ -31,19 +31,19 @@ jobs:
         pdm add django==${{ matrix.django-version }}
 
     - name: Run Linting (flake8)
-      run: pdm run flake8 .
+      run: pdm run lint
 
     - name: Run Formatting Check (black)
-      run: pdm run black --check .
+      run: pdm run format-check
 
     - name: Run Type Checking (mypy)
-      run: pdm run mypy .
+      run: pdm run typecheck
 
     - name: Run Unit Tests with Coverage
       run: |
-        pdm run coverage run manage.py test
-        pdm run coverage report -m
-        pdm run coverage xml
+        pdm run coverage
+        pdm run coverage-report
+        pdm run coverage-xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4

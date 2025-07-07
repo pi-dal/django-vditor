@@ -49,6 +49,7 @@ format-check = "black --check ."
 typecheck = "mypy --ignore-missing-imports vditor/ vditor_demo/"
 coverage = {cmd = ["coverage", "run", "manage.py", "test"]}
 coverage-report = "coverage report -m"
+coverage-xml = "coverage xml"
 
 [tool.mypy]
 ignore_missing_imports = true
