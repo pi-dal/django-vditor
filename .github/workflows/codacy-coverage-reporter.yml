@@ -11,9 +11,25 @@ jobs:
     runs-on: ubuntu-latest
     name: codacy-coverage-reporter
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
+      
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: '3.11'
+          cache: true
+      
+      - name: Install dependencies
+        run: pdm install --dev
+      
+      - name: Run tests with coverage
+        run: |
+          pdm run coverage run manage.py test
+          pdm run coverage xml
+      
       - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@master
+        uses: codacy/codacy-coverage-reporter-action@v1
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
           coverage-reports: coverage.xml
+        continue-on-error: true
