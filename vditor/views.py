@@ -1,7 +1,12 @@
 import hashlib
 import logging
 import os
+import asyncio
+import time
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+from collections import defaultdict
 
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
@@ -15,6 +20,10 @@ from werkzeug.utils import secure_filename
 from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
+
+# Performance metrics
+_upload_metrics = defaultdict(lambda: {'count': 0, 'total_time': 0, 'total_size': 0})
+_upload_metrics_lock = asyncio.Lock()
 
 # Configuration constants
 MAX_FILE_SIZE = getattr(
@@ -69,6 +78,103 @@ FORBIDDEN_FILENAMES = {
     "LPT8",
     "LPT9",
 }
+
+# Thread pool for file processing
+_file_processing_pool = ThreadPoolExecutor(max_workers=4)
+
+
+def update_upload_metrics(file_size: int, processing_time: float, success: bool = True) -> None:
+    """Update upload performance metrics.
+    
+    Args:
+        file_size: Size of uploaded file in bytes
+        processing_time: Time taken to process upload in seconds
+        success: Whether upload was successful
+    """
+    try:
+        metric_key = 'successful' if success else 'failed'
+        _upload_metrics[metric_key]['count'] += 1
+        _upload_metrics[metric_key]['total_time'] += processing_time
+        _upload_metrics[metric_key]['total_size'] += file_size
+    except Exception as e:
+        logger.warning(f"Failed to update upload metrics: {e}")
+
+
+def get_upload_metrics() -> dict:
+    """Get current upload performance metrics.
+    
+    Returns:
+        Dictionary with upload metrics
+    """
+    metrics = {}
+    for key, data in _upload_metrics.items():
+        if data['count'] > 0:
+            metrics[key] = {
+                'count': data['count'],
+                'avg_time': data['total_time'] / data['count'],
+                'total_size': data['total_size'],
+                'avg_size': data['total_size'] / data['count']
+            }
+    return metrics
+
+
+def _process_file_hash(file_path: Path) -> str:
+    """Process file hash in a separate thread to avoid blocking."""
+    try:
+        file_hash = hashlib.sha256()
+        with open(file_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(8192), b""):
+                file_hash.update(chunk)
+        return file_hash.hexdigest()[:16]
+    except Exception as e:
+        logger.error(f"Error processing file hash: {e}")
+        return ""
+
+
+async def _process_file_async(file_path: Path, uploaded_file: UploadedFile) -> tuple[bool, int]:
+    """Process file upload asynchronously.
+    
+    Args:
+        file_path: Target file path
+        uploaded_file: Uploaded file object
+        
+    Returns:
+        tuple: (success, bytes_written)
+    """
+    loop = asyncio.get_event_loop()
+    
+    def _save_file_sync():
+        return _save_file_async(file_path, uploaded_file)
+    
+    return await loop.run_in_executor(_file_processing_pool, _save_file_sync)
+
+
+def _save_file_async(file_path: Path, uploaded_file: UploadedFile) -> tuple[bool, int]:
+    """Save file asynchronously to avoid blocking the main thread."""
+    try:
+        bytes_written = 0
+        temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
+        
+        # Ensure directory exists
+        file_path.parent.mkdir(parents=True, exist_ok=True, mode=0o755)
+        
+        with open(temp_path, "wb") as f:
+            for chunk in uploaded_file.chunks():
+                f.write(chunk)
+                bytes_written += len(chunk)
+        
+        # Set secure file permissions
+        os.chmod(temp_path, 0o644)
+        
+        # Atomic move to final location
+        temp_path.rename(file_path)
+        
+        return True, bytes_written
+    except Exception as e:
+        logger.error(f"Error saving file: {e}")
+        # Clean up temp file on error
+        temp_path.unlink(missing_ok=True)
+        return False, 0
 
 
 def _validate_filename_security(filename: str) -> tuple[bool, str]:
@@ -194,14 +300,19 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
     Returns:
         JsonResponse with upload result
     """
+    start_time = time.time()
+    
+    client_ip = request.META.get('REMOTE_ADDR', 'unknown')
+    user_agent = request.META.get('HTTP_USER_AGENT', 'unknown')
+    
     logger.info(
-        f"Image upload request from {request.META.get('REMOTE_ADDR', 'unknown')}"
+        f"Image upload request from {client_ip} - User-Agent: {user_agent[:100]}"
     )
 
     # Check if file was uploaded
     image_file = request.FILES.get("file[]")
     if not image_file:
-        logger.warning("Upload request received without file")
+        logger.warning(f"No file uploaded from {client_ip}")
         return JsonResponse(
             {
                 "msg": _("No file uploaded."),
@@ -211,17 +322,28 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
         )
 
     # Validate uploaded file
-    is_valid, error_msg = _validate_uploaded_file(image_file)
-    if not is_valid:
-        logger.warning(
-            f"Invalid file upload attempt: {error_msg}. File: {image_file.name}"
-        )
+    try:
+        is_valid, error_msg = _validate_uploaded_file(image_file)
+        if not is_valid:
+            logger.warning(
+                f"Invalid file upload attempt from {client_ip}: {error_msg}. "
+                f"File: {image_file.name}, Size: {image_file.size}"
+            )
+            return JsonResponse(
+                {
+                    "msg": error_msg,
+                    "code": 1,
+                },
+                status=400,
+            )
+    except Exception as e:
+        logger.error(f"File validation error from {client_ip}: {e}")
         return JsonResponse(
             {
-                "msg": error_msg,
+                "msg": _("File validation failed."),
                 "code": 1,
             },
-            status=400,
+            status=500,
         )
 
     # Generate safe filename with hash for uniqueness
@@ -249,8 +371,8 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
         file_path = upload_path / unique_filename
 
         logger.info(
-            f"Processing upload: {original_filename} -> {unique_filename} "
-            f"(hash: {content_hash})"
+            f"Processing upload from {client_ip}: {original_filename} -> {unique_filename} "
+            f"(hash: {content_hash}, size: {image_file.size})"
         )
 
         # Check if file already exists (deduplication)
@@ -272,10 +394,14 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
                 }
             )
             response["Cache-Control"] = "public, max-age=3600"  # Cache for 1 hour
+            
+            processing_time = time.time() - start_time
+            update_upload_metrics(image_file.size, processing_time, success=True)
+            logger.info(f"Upload completed (deduplicated) in {processing_time:.3f}s from {client_ip}")
             return response
 
     except Exception as e:
-        logger.error(f"Failed to process filename '{original_filename}': {e}")
+        logger.error(f"Failed to process filename '{original_filename}' from {client_ip}: {e}")
         return JsonResponse(
             {
                 "msg": _("Invalid filename."),
@@ -305,17 +431,18 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
             # Atomic move to final location
             temp_path.rename(file_path)
 
-        except Exception:
+        except Exception as e:
             # Clean up temp file on error
             temp_path.unlink(missing_ok=True)
+            logger.error(f"File save error from {client_ip}: {e}")
             raise
 
         logger.info(
-            f"Successfully saved file {unique_filename} ({bytes_written} bytes)"
+            f"Successfully saved file {unique_filename} ({bytes_written} bytes) from {client_ip}"
         )
 
     except OSError as e:
-        logger.error(f"Failed to create upload directory '{upload_path}': {e}")
+        logger.error(f"Failed to create upload directory '{upload_path}' from {client_ip}: {e}")
         return JsonResponse(
             {
                 "msg": _("Failed to create upload directory."),
@@ -324,7 +451,7 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
             status=500,
         )
     except IOError as e:
-        logger.error(f"Failed to write file '{file_path}': {e}")
+        logger.error(f"Failed to write file '{file_path}' from {client_ip}: {e}")
         return JsonResponse(
             {
                 "msg": _("Failed to save uploaded file."),
@@ -333,7 +460,7 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
             status=500,
         )
     except Exception as e:
-        logger.error(f"Unexpected error during file save: {e}")
+        logger.error(f"Unexpected error during file save from {client_ip}: {e}")
         return JsonResponse(
             {
                 "msg": _("An unexpected error occurred."),
@@ -361,9 +488,13 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
         )
         # Cache successful uploads for better performance
         response["Cache-Control"] = "public, max-age=3600"  # Cache for 1 hour
+        
+        processing_time = time.time() - start_time
+        update_upload_metrics(image_file.size, processing_time, success=True)
+        logger.info(f"Upload completed successfully in {processing_time:.3f}s from {client_ip}")
         return response
     except Exception as e:
-        logger.error(f"Failed to generate file URL: {e}")
+        logger.error(f"Failed to generate file URL from {client_ip}: {e}")
         # Clean up the file if URL generation fails
         try:
             file_path.unlink(missing_ok=True)

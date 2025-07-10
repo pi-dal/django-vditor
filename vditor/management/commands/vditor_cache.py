@@ -1,5 +1,5 @@
 """
-Django management command for Vditor cache operations.
+Django management command for Vditor cache operations and performance monitoring.
 """
 
 from django.core.management.base import BaseCommand, CommandError
@@ -8,13 +8,13 @@ from vditor.cache_utils import clear_all_caches, warm_cache
 
 
 class Command(BaseCommand):
-    help = "Manage Vditor caches"
+    help = "Manage Vditor caches and view performance metrics"
 
     def add_arguments(self, parser):
         parser.add_argument(
             "action",
-            choices=["clear", "warm", "info"],
-            help="Action to perform on caches",
+            choices=["clear", "warm", "info", "metrics"],
+            help="Action to perform on caches or view metrics",
         )
 
     def handle(self, *args, **options):
@@ -64,3 +64,40 @@ class Command(BaseCommand):
 
             except Exception as e:
                 self.stdout.write(f"Error getting cache info: {e}")
+
+        elif action == "metrics":
+            self.stdout.write("Vditor Performance Metrics:")
+            self.stdout.write("==========================")
+
+            try:
+                from vditor.views import get_upload_metrics
+                
+                metrics = get_upload_metrics()
+                
+                if not metrics:
+                    self.stdout.write("No upload metrics available yet.")
+                    return
+                
+                for metric_type, data in metrics.items():
+                    self.stdout.write(f"\n{metric_type.upper()} Uploads:")
+                    self.stdout.write(f"  Count: {data['count']}")
+                    self.stdout.write(f"  Average Time: {data['avg_time']:.3f}s")
+                    self.stdout.write(f"  Total Size: {data['total_size'] / (1024*1024):.2f}MB")
+                    self.stdout.write(f"  Average Size: {data['avg_size'] / 1024:.2f}KB")
+                
+                # Calculate overall stats
+                total_uploads = sum(data['count'] for data in metrics.values())
+                if total_uploads > 0:
+                    self.stdout.write(f"\nOverall Statistics:")
+                    self.stdout.write(f"  Total Uploads: {total_uploads}")
+                    
+                    total_time = sum(data['total_time'] for data in metrics.values())
+                    avg_time = total_time / total_uploads
+                    self.stdout.write(f"  Average Processing Time: {avg_time:.3f}s")
+                    
+                    total_size = sum(data['total_size'] for data in metrics.values())
+                    avg_size = total_size / total_uploads
+                    self.stdout.write(f"  Average File Size: {avg_size / 1024:.2f}KB")
+                    
+            except Exception as e:
+                self.stdout.write(f"Error getting metrics: {e}")
