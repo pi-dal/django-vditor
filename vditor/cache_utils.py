@@ -20,9 +20,12 @@ DEFAULT_CONFIG_CACHE_TIMEOUT = 300  # 5 minutes
 DEFAULT_TEMPLATE_CACHE_TIMEOUT = 3600  # 1 hour
 DEFAULT_STATIC_CACHE_TIMEOUT = 86400  # 24 hours
 
+# Cache version for invalidation
+CACHE_VERSION = "1.0"
+
 
 def get_cache_key(*args: Any, prefix: str = "vditor") -> str:
-    """Generate a cache key from arguments.
+    """Generate a cache key from arguments with version control.
 
     Args:
         *args: Arguments to include in cache key
@@ -33,12 +36,13 @@ def get_cache_key(*args: Any, prefix: str = "vditor") -> str:
     """
     # Create a hash of the arguments for a consistent key
     key_data = "|".join(str(arg) for arg in args)
-    key_hash = hashlib.md5(key_data.encode()).hexdigest()[:16]
-    return f"{prefix}:{key_hash}"
+    # Use full hash to avoid collisions
+    key_hash = hashlib.sha256(key_data.encode()).hexdigest()
+    return f"{prefix}:{CACHE_VERSION}:{key_hash}"
 
 
 def cache_result(timeout: Optional[int] = None, key_prefix: str = "vditor") -> Callable:
-    """Decorator to cache function results.
+    """Decorator to cache function results with improved error handling.
 
     Args:
         timeout: Cache timeout in seconds
@@ -53,22 +57,32 @@ def cache_result(timeout: Optional[int] = None, key_prefix: str = "vditor") -> C
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Generate cache key from function name and arguments
             cache_key = get_cache_key(
-                func.__name__, args, tuple(sorted(kwargs.items())), prefix=key_prefix
+                func.__name__, args, tuple(sorted(kwargs.items())), 
+                prefix=key_prefix
             )
 
             # Try to get from cache first
-            result = cache.get(cache_key)
-            if result is not None:
-                logger.debug(f"Cache hit for {func.__name__}: {cache_key}")
-                return result
+            try:
+                result = cache.get(cache_key)
+                if result is not None:
+                    logger.debug(f"Cache hit for {func.__name__}: {cache_key}")
+                    return result
+            except Exception as e:
+                logger.error(f"Cache get error for {func.__name__}: {e}")
+                # Fallback to direct function call if cache is unavailable
+                pass
 
             # Cache miss - execute function
             logger.debug(f"Cache miss for {func.__name__}: {cache_key}")
             result = func(*args, **kwargs)
 
-            # Store in cache
-            cache_timeout = timeout or DEFAULT_CONFIG_CACHE_TIMEOUT
-            cache.set(cache_key, result, cache_timeout)
+            # Store in cache with error handling
+            try:
+                cache_timeout = timeout or DEFAULT_CONFIG_CACHE_TIMEOUT
+                cache.set(cache_key, result, cache_timeout)
+            except Exception as e:
+                logger.warning(f"Failed to cache result for {func.__name__}: {e}")
+                # Continue without caching rather than failing
 
             return result
 
