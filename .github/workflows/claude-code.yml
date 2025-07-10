@@ -28,5 +28,6 @@ jobs:
           timeout_minutes: '60'
           anthropic_api_key: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          allow_tools: true
           claude_env: |
             ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
