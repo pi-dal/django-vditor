@@ -2,6 +2,7 @@ import hashlib
 import logging
 import os
 import time
+import threading
 from pathlib import Path
 from collections import defaultdict
 
@@ -18,8 +19,9 @@ from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
 
-# Performance metrics
+# Performance metrics with thread safety
 _upload_metrics = defaultdict(lambda: {'count': 0, 'total_time': 0, 'total_size': 0})
+_upload_metrics_lock = threading.Lock()
 
 # Configuration constants
 MAX_FILE_SIZE = getattr(
@@ -88,9 +90,10 @@ def update_upload_metrics(
     """
     try:
         metric_key = 'successful' if success else 'failed'
-        _upload_metrics[metric_key]['count'] += 1
-        _upload_metrics[metric_key]['total_time'] += processing_time
-        _upload_metrics[metric_key]['total_size'] += file_size
+        with _upload_metrics_lock:
+            _upload_metrics[metric_key]['count'] += 1
+            _upload_metrics[metric_key]['total_time'] += processing_time
+            _upload_metrics[metric_key]['total_size'] += file_size
     except Exception as e:
         logger.warning(f"Failed to update upload metrics: {e}")
 
@@ -102,15 +105,17 @@ def get_upload_metrics() -> dict:
         Dictionary with upload metrics
     """
     metrics = {}
-    for key, data in _upload_metrics.items():
-        if data['count'] > 0:
-            metrics[key] = {
-                'count': data['count'],
-                'avg_time': data['total_time'] / data['count'],
-                'total_size': data['total_size'],
-                'avg_size': data['total_size'] / data['count']
-            }
+    with _upload_metrics_lock:
+        for key, data in _upload_metrics.items():
+            if data['count'] > 0:
+                metrics[key] = {
+                    'count': data['count'],
+                    'avg_time': data['total_time'] / data['count'],
+                    'total_size': data['total_size'],
+                    'avg_size': data['total_size'] / data['count']
+                }
     return metrics
+
 
 
 def _validate_filename_security(filename: str) -> tuple[bool, str]:
@@ -225,7 +230,7 @@ def _validate_uploaded_file(uploaded_file: UploadedFile) -> tuple[bool, str]:
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@cache_control(no_cache=True, no_store=True, must_revalidate=True)
+@cache_control(no_cache=True, no_store=True)
 @vary_on_headers("X-Requested-With")
 def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
     """Handle image uploads for Vditor editor.
@@ -374,7 +379,8 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
 
         except Exception as e:
             # Clean up temp file on error
-            temp_path.unlink(missing_ok=True)
+            if 'temp_path' in locals():
+                temp_path.unlink(missing_ok=True)
             logger.error(f"File save error from {client_ip}: {e}")
             raise
 

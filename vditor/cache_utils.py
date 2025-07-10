@@ -83,8 +83,9 @@ def cache_result(timeout: Optional[int] = None, key_prefix: str = "vditor") -> C
                 return result
             except Exception as e:
                 logger.error(f"Cache decorator error for {func.__name__}: {e}")
-                # Fallback to direct function call
-                return func(*args, **kwargs)
+                # Fallback to direct function call, but don't mask the original error
+                # Let the original exception propagate
+                raise
 
         return wrapper
 

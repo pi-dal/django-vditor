@@ -223,10 +223,7 @@ class VditorConfig(dict):
             if cached_config:
                 self.update(cached_config)
                 logger.debug(f"Loaded config '{config_name}' from cache")
-                # Validate cached config
-                warnings = validate_config(self, config_name)
-                for warning in warnings:
-                    logger.warning(warning)
+                self._validate_and_log_warnings(config_name)
                 return
         except ImportError:
             # Cache utils not available, proceed normally
@@ -237,10 +234,7 @@ class VditorConfig(dict):
         self.set_language()
         self.set_configs(config_name)
         
-        # Validate configuration
-        warnings = validate_config(self, config_name)
-        for warning in warnings:
-            logger.warning(warning)
+        self._validate_and_log_warnings(config_name)
 
         # Cache the result
         try:
@@ -249,6 +243,12 @@ class VditorConfig(dict):
             ConfigCache.set_config(config_name, dict(self))
         except ImportError:
             pass
+
+    def _validate_and_log_warnings(self, config_name: str) -> None:
+        """Validate configuration and log warnings."""
+        warnings = validate_config(self, config_name)
+        for warning in warnings:
+            logger.warning(warning)
 
     def set_language(self) -> None:
         language_map: Dict[str, str] = {
