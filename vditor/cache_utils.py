@@ -55,37 +55,36 @@ def cache_result(timeout: Optional[int] = None, key_prefix: str = "vditor") -> C
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            try:
-                # Generate cache key from function name and arguments
-                cache_key = get_cache_key(
-                    func.__name__, args, tuple(sorted(kwargs.items())), 
-                    prefix=key_prefix
-                )
+            # Generate cache key from function name and arguments
+            cache_key = get_cache_key(
+                func.__name__, args, tuple(sorted(kwargs.items())), 
+                prefix=key_prefix
+            )
 
-                # Try to get from cache first
+            # Try to get from cache first
+            try:
                 result = cache.get(cache_key)
                 if result is not None:
                     logger.debug(f"Cache hit for {func.__name__}: {cache_key}")
                     return result
-
-                # Cache miss - execute function
-                logger.debug(f"Cache miss for {func.__name__}: {cache_key}")
-                result = func(*args, **kwargs)
-
-                # Store in cache with error handling
-                cache_timeout = timeout or DEFAULT_CONFIG_CACHE_TIMEOUT
-                try:
-                    cache.set(cache_key, result, cache_timeout)
-                except Exception as e:
-                    logger.warning(f"Failed to cache result for {func.__name__}: {e}")
-                    # Continue without caching rather than failing
-
-                return result
             except Exception as e:
-                logger.error(f"Cache decorator error for {func.__name__}: {e}")
-                # Fallback to direct function call, but don't mask the original error
-                # Let the original exception propagate
-                raise
+                logger.error(f"Cache get error for {func.__name__}: {e}")
+                # Fallback to direct function call if cache is unavailable
+                pass
+
+            # Cache miss - execute function
+            logger.debug(f"Cache miss for {func.__name__}: {cache_key}")
+            result = func(*args, **kwargs)
+
+            # Store in cache with error handling
+            try:
+                cache_timeout = timeout or DEFAULT_CONFIG_CACHE_TIMEOUT
+                cache.set(cache_key, result, cache_timeout)
+            except Exception as e:
+                logger.warning(f"Failed to cache result for {func.__name__}: {e}")
+                # Continue without caching rather than failing
+
+            return result
 
         return wrapper
 
