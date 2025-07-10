@@ -47,6 +47,11 @@ jobs:
         pdm run format-check
         pdm run typecheck
 
+    - name: Test cache operations
+      run: |
+        python manage.py vditor_cache warm
+        python manage.py vditor_cache info
+
   build:
     runs-on: ubuntu-latest
     needs: [test]

@@ -1,7 +1,7 @@
 version: 2
 
 updates:
-  # Enable version updates for Python dependencies
+  # Enable version updates for Python dependencies using PDM
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -17,6 +17,13 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
+    # Add PDM-specific configuration
+    ignore:
+      # Ignore major version updates for critical dependencies
+      - dependency-name: "django"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "werkzeug"
+        update-types: ["version-update:semver-major"]
 
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
@@ -34,3 +41,23 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
+
+  # Enable version updates for PDM dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "pi-dal"
+    labels:
+      - "dependencies"
+      - "pdm"
+    commit-message:
+      prefix: "pdm"
+      include: "scope"
+    # Focus on dev dependencies
+    allow:
+      - dependency-type: "development"

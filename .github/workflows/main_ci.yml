@@ -53,6 +53,11 @@ jobs:
         name: codecov-umbrella
         fail_ci_if_error: false
 
+    - name: Performance Test
+      run: |
+        echo "Running performance tests..."
+        python manage.py vditor_cache metrics || echo "No metrics available yet"
+
   security:
     runs-on: ubuntu-latest
     steps:
@@ -69,3 +74,24 @@ jobs:
     
     - name: Run security scan
       run: pdm run safety check --json || true
+
+  cache-test:
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PDM
+      uses: pdm-project/setup-pdm@v4
+      with:
+        python-version: '3.11'
+        cache: true
+    
+    - name: Install dependencies
+      run: pdm install --dev
+    
+    - name: Test cache operations
+      run: |
+        python manage.py vditor_cache warm
+        python manage.py vditor_cache info
+        python manage.py vditor_cache clear

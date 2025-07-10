@@ -1,0 +1,96 @@
+name: Performance Monitoring
+
+on:
+  schedule:
+    # Run weekly on Sundays
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PDM
+      uses: pdm-project/setup-pdm@v4
+      with:
+        python-version: '3.11'
+        cache: true
+
+    - name: Install dependencies
+      run: pdm install --dev
+
+    - name: Run performance tests
+      run: |
+        echo "Running performance benchmarks..."
+        
+        # Test cache operations
+        python manage.py vditor_cache warm
+        python manage.py vditor_cache info
+        
+        # Test upload performance (if metrics available)
+        python manage.py vditor_cache metrics || echo "No upload metrics available"
+        
+        # Run basic performance checks
+        python -c "
+import time
+import sys
+sys.path.append('.')
+from vditor.configs import VditorConfig
+from vditor.cache_utils import ConfigCache
+
+# Test config loading performance
+start_time = time.time()
+config = VditorConfig('default')
+config_time = time.time() - start_time
+print(f'Config loading time: {config_time:.4f}s')
+
+# Test cache performance
+start_time = time.time()
+ConfigCache.set_config('test_perf', {'test': 'data'})
+cache_time = time.time() - start_time
+print(f'Cache operation time: {cache_time:.4f}s')
+        "
+
+    - name: Upload performance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report
+        path: |
+          coverage.xml
+          .coverage
+        if-no-files-found: ignore
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PDM
+      uses: pdm-project/setup-pdm@v4
+      with:
+        python-version: '3.11'
+        cache: true
+
+    - name: Install dependencies
+      run: pdm install --dev
+
+    - name: Run security scan
+      run: |
+        echo "Running security scan..."
+        pdm run safety check --json --output safety-report.json || true
+        
+        # Check for known vulnerabilities
+        if [ -f safety-report.json ]; then
+          echo "Security scan completed. Check safety-report.json for details."
+        else
+          echo "No security issues found or safety check failed."
+        fi
+
+    - name: Upload security report
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-report
+        path: safety-report.json
+        if-no-files-found: ignore
