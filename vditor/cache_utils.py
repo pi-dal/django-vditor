@@ -58,7 +58,8 @@ def cache_result(timeout: Optional[int] = None, key_prefix: str = "vditor") -> C
             try:
                 # Generate cache key from function name and arguments
                 cache_key = get_cache_key(
-                    func.__name__, args, tuple(sorted(kwargs.items())), prefix=key_prefix
+                    func.__name__, args, tuple(sorted(kwargs.items())), 
+                    prefix=key_prefix
                 )
 
                 # Try to get from cache first

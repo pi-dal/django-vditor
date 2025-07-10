@@ -1,11 +1,8 @@
 import hashlib
 import logging
 import os
-import asyncio
 import time
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
 from collections import defaultdict
 
 from django.conf import settings
@@ -23,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 # Performance metrics
 _upload_metrics = defaultdict(lambda: {'count': 0, 'total_time': 0, 'total_size': 0})
-_upload_metrics_lock = asyncio.Lock()
 
 # Configuration constants
 MAX_FILE_SIZE = getattr(
@@ -79,11 +75,10 @@ FORBIDDEN_FILENAMES = {
     "LPT9",
 }
 
-# Thread pool for file processing
-_file_processing_pool = ThreadPoolExecutor(max_workers=4)
 
-
-def update_upload_metrics(file_size: int, processing_time: float, success: bool = True) -> None:
+def update_upload_metrics(
+    file_size: int, processing_time: float, success: bool = True
+) -> None:
     """Update upload performance metrics.
     
     Args:
@@ -131,25 +126,9 @@ def _process_file_hash(file_path: Path) -> str:
         return ""
 
 
-async def _process_file_async(file_path: Path, uploaded_file: UploadedFile) -> tuple[bool, int]:
-    """Process file upload asynchronously.
-    
-    Args:
-        file_path: Target file path
-        uploaded_file: Uploaded file object
-        
-    Returns:
-        tuple: (success, bytes_written)
-    """
-    loop = asyncio.get_event_loop()
-    
-    def _save_file_sync():
-        return _save_file_async(file_path, uploaded_file)
-    
-    return await loop.run_in_executor(_file_processing_pool, _save_file_sync)
-
-
-def _save_file_async(file_path: Path, uploaded_file: UploadedFile) -> tuple[bool, int]:
+def _save_file_async(
+    file_path: Path, uploaded_file: UploadedFile
+) -> tuple[bool, int]:
     """Save file asynchronously to avoid blocking the main thread."""
     try:
         bytes_written = 0
@@ -371,8 +350,8 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
         file_path = upload_path / unique_filename
 
         logger.info(
-            f"Processing upload from {client_ip}: {original_filename} -> {unique_filename} "
-            f"(hash: {content_hash}, size: {image_file.size})"
+            f"Processing upload from {client_ip}: {original_filename} -> "
+            f"{unique_filename} (hash: {content_hash}, size: {image_file.size})"
         )
 
         # Check if file already exists (deduplication)
@@ -397,11 +376,16 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
             
             processing_time = time.time() - start_time
             update_upload_metrics(image_file.size, processing_time, success=True)
-            logger.info(f"Upload completed (deduplicated) in {processing_time:.3f}s from {client_ip}")
+            logger.info(
+                f"Upload completed (deduplicated) in {processing_time:.3f}s "
+                f"from {client_ip}"
+            )
             return response
 
     except Exception as e:
-        logger.error(f"Failed to process filename '{original_filename}' from {client_ip}: {e}")
+        logger.error(
+            f"Failed to process filename '{original_filename}' from {client_ip}: {e}"
+        )
         return JsonResponse(
             {
                 "msg": _("Invalid filename."),
@@ -438,11 +422,14 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
             raise
 
         logger.info(
-            f"Successfully saved file {unique_filename} ({bytes_written} bytes) from {client_ip}"
+            f"Successfully saved file {unique_filename} ({bytes_written} bytes) "
+            f"from {client_ip}"
         )
 
     except OSError as e:
-        logger.error(f"Failed to create upload directory '{upload_path}' from {client_ip}: {e}")
+        logger.error(
+            f"Failed to create upload directory '{upload_path}' from {client_ip}: {e}"
+        )
         return JsonResponse(
             {
                 "msg": _("Failed to create upload directory."),
@@ -491,7 +478,9 @@ def vditor_images_upload_view(request: HttpRequest) -> JsonResponse:
         
         processing_time = time.time() - start_time
         update_upload_metrics(image_file.size, processing_time, success=True)
-        logger.info(f"Upload completed successfully in {processing_time:.3f}s from {client_ip}")
+        logger.info(
+            f"Upload completed successfully in {processing_time:.3f}s from {client_ip}"
+        )
         return response
     except Exception as e:
         logger.error(f"Failed to generate file URL from {client_ip}: {e}")

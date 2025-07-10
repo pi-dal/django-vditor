@@ -82,8 +82,12 @@ class Command(BaseCommand):
                     self.stdout.write(f"\n{metric_type.upper()} Uploads:")
                     self.stdout.write(f"  Count: {data['count']}")
                     self.stdout.write(f"  Average Time: {data['avg_time']:.3f}s")
-                    self.stdout.write(f"  Total Size: {data['total_size'] / (1024*1024):.2f}MB")
-                    self.stdout.write(f"  Average Size: {data['avg_size'] / 1024:.2f}KB")
+                    self.stdout.write(
+                        f"  Total Size: {data['total_size'] / (1024*1024):.2f}MB"
+                    )
+                    self.stdout.write(
+                        f"  Average Size: {data['avg_size'] / 1024:.2f}KB"
+                    )
                 
                 # Calculate overall stats
                 total_uploads = sum(data['count'] for data in metrics.values())

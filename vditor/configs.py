@@ -23,23 +23,33 @@ def validate_config(config: Dict[str, Any], config_name: str) -> List[str]:
     required_fields = ['width', 'height', 'mode']
     for field in required_fields:
         if field not in config:
-            warnings.append(f"Missing required field '{field}' in config '{config_name}'")
+            warnings.append(
+                f"Missing required field '{field}' in config '{config_name}'"
+            )
     
     # Validate mode
     valid_modes = ['sv', 'ir', 'wysiwyg']
     if 'mode' in config and config['mode'] not in valid_modes:
-        warnings.append(f"Invalid mode '{config['mode']}' in config '{config_name}'. Valid modes: {valid_modes}")
+        warnings.append(
+            f"Invalid mode '{config['mode']}' in config '{config_name}'. "
+            f"Valid modes: {valid_modes}"
+        )
     
     # Validate theme
     valid_themes = ['classic', 'dark']
     if 'theme' in config and config['theme'] not in valid_themes:
-        warnings.append(f"Invalid theme '{config['theme']}' in config '{config_name}'. Valid themes: {valid_themes}")
+        warnings.append(
+            f"Invalid theme '{config['theme']}' in config '{config_name}'. "
+            f"Valid themes: {valid_themes}"
+        )
     
     # Validate file size limits
     if 'upload' in config and 'max' in config['upload']:
         max_size = config['upload']['max']
         if not isinstance(max_size, (int, float)) or max_size <= 0:
-            warnings.append(f"Invalid upload max size '{max_size}' in config '{config_name}'")
+            warnings.append(
+                f"Invalid upload max size '{max_size}' in config '{config_name}'"
+            )
     
     return warnings
 
