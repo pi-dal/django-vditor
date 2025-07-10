@@ -113,49 +113,6 @@ def get_upload_metrics() -> dict:
     return metrics
 
 
-def _process_file_hash(file_path: Path) -> str:
-    """Process file hash in a separate thread to avoid blocking."""
-    try:
-        file_hash = hashlib.sha256()
-        with open(file_path, 'rb') as f:
-            for chunk in iter(lambda: f.read(8192), b""):
-                file_hash.update(chunk)
-        return file_hash.hexdigest()[:16]
-    except Exception as e:
-        logger.error(f"Error processing file hash: {e}")
-        return ""
-
-
-def _save_file_async(
-    file_path: Path, uploaded_file: UploadedFile
-) -> tuple[bool, int]:
-    """Save file asynchronously to avoid blocking the main thread."""
-    try:
-        bytes_written = 0
-        temp_path = file_path.with_suffix(file_path.suffix + ".tmp")
-        
-        # Ensure directory exists
-        file_path.parent.mkdir(parents=True, exist_ok=True, mode=0o755)
-        
-        with open(temp_path, "wb") as f:
-            for chunk in uploaded_file.chunks():
-                f.write(chunk)
-                bytes_written += len(chunk)
-        
-        # Set secure file permissions
-        os.chmod(temp_path, 0o644)
-        
-        # Atomic move to final location
-        temp_path.rename(file_path)
-        
-        return True, bytes_written
-    except Exception as e:
-        logger.error(f"Error saving file: {e}")
-        # Clean up temp file on error
-        temp_path.unlink(missing_ok=True)
-        return False, 0
-
-
 def _validate_filename_security(filename: str) -> tuple[bool, str]:
     """Validate filename for security issues.
 
