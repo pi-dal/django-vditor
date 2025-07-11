@@ -1,3 +1,11 @@
+## v1.1.4 (2025-01-11)
+
+### Changed
+- **🧹 Repository Cleanup**
+  - Removed downloaded vditor source files (vditor-3.11.1/ and v3.11.1.zip) that were used for reference
+  - Updated .gitignore to prevent tracking of frontend source code and build artifacts
+  - Improved repository structure and reduced size
+
 ## v1.1.3 (2025-01-06)
 
 ### Added
