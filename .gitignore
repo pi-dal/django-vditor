@@ -132,3 +132,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Frontend source code and build artifacts
+vditor-*/
+*.zip
+dist/
+build/
