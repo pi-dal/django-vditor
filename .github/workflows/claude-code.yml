@@ -28,6 +28,19 @@ jobs:
           timeout_minutes: '60'
           anthropic_api_key: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          allow_tools: true
+          allowed_tools: |
+            Bash
+            Read
+            Write
+            Edit
+            MultiEdit
+            Glob
+            Grep
+            LS
+            WebFetch
+            WebSearch
+            GitHubRead
+            GitHubReview
+            Task
           claude_env: |
             ANTHROPIC_BASE_URL: ${{ secrets.ANTHROPIC_BASE_URL }}
